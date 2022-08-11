@@ -10,18 +10,7 @@ class BaseState(ABC):
     @abstractmethod
     def __init__(self, is_init=False):
         self._first = not is_init
-
-    @abstractmethod
-    def __del__(self):
-        raise NotImplementedError("Exit Method")
-
-    @property
-    def context(self):
-        return self._context
-
-    @context.setter
-    def context(self, context: Context):
-        self._context = context
+        self.context = None
 
     @property
     def first(self):
@@ -43,7 +32,12 @@ class BaseState(ABC):
         pass
 
     @abstractmethod
-    def do_something(self, context: Context, inputs) -> Optional[BaseState]:
+    def do_something(self, inputs) -> Optional[BaseState]:
+        """
+        :param context:
+        :param inputs:
+        :return: None : if return None, end current_State
+        """
         raise NotImplementedError("")
 
 
@@ -54,9 +48,6 @@ class AConfigState(BaseState):
     def __init__(self, is_init=False):
         super(AConfigState, self).__init__(is_init)
 
-    def __del__(self):
-        self.exit()
-
     def enter(self):
         if self.first:
             super(AConfigState, self).enter()
@@ -66,27 +57,27 @@ class AConfigState(BaseState):
         super(AConfigState, self).exit()
         print("Exit A")
 
-    def do_something(self, context: Context, inputs) -> Optional[State]:
+    def do_something(self, inputs) -> Optional[State]:
 
         # Do Some Thing...
-        context.cnt_a_state += 1
+        self.context.cnt_a_state += 1
         print("Do A")
         # some condition....
         if inputs == "A":
-            return None
+            return self.__class__()
         elif inputs == "B":
             return BConfigState()
         elif inputs == "C":
             return CConfigState()
         return None
 
+    def __repr__(self):
+        return "state A"
+
 
 class BConfigState(BaseState):
     def __init__(self, is_init=False):
         super(BConfigState, self).__init__(is_init)
-
-    def __del__(self):
-        self.exit()
 
     def enter(self):
         if self.first:
@@ -97,26 +88,26 @@ class BConfigState(BaseState):
         super(BConfigState, self).exit()
         print("Exit B")
 
-    def do_something(self, context: Context, inputs) -> Optional[State]:
+    def do_something(self, inputs) -> Optional[State]:
         # Do Some Thing...
-        context.cnt_b_state += 1
+        self.context.cnt_b_state += 1
         print("Do B")
         # some condition....
         if inputs == "A":
             return AConfigState()
         elif inputs == "B":
-            return None
+            return self.__class__()
         elif inputs == "C":
             return CConfigState()
         return None
+
+    def __repr__(self):
+        return "state B"
 
 
 class CConfigState(BaseState):
     def __init__(self, is_init=False):
         super(CConfigState, self).__init__(is_init)
-
-    def __del__(self):
-        self.exit()
 
     def enter(self):
         if self.first:
@@ -127,10 +118,10 @@ class CConfigState(BaseState):
         super(CConfigState, self).exit()
         print("Exit C")
 
-    def do_something(self, context: Context, inputs) -> Optional[State]:
+    def do_something(self, inputs) -> Optional[State]:
 
         # Do Some Thing...
-        context.cnt_c_state += 1
+        self.context.cnt_c_state += 1
         print("Do C")
         # some condition....
         if inputs == "A":
@@ -138,5 +129,8 @@ class CConfigState(BaseState):
         elif inputs == "B":
             return BConfigState()
         elif inputs == "C":
-            return None
+            return self.__class__()
         return None
+
+    def __repr__(self):
+        return "state C"

@@ -2,10 +2,8 @@ from state_pattern.state import *
 
 
 class Context:
-    _state = None
-
-    def __init__(self, state: State):
-        self._state = state
+    def __init__(self, state: Optional[State] = None):
+        self.state = state
 
         self.cnt_a_state = 0
         self.cnt_b_state = 0
@@ -16,16 +14,19 @@ class Context:
         return self._state
 
     @state.setter
-    def state(self, state: State):
+    def state(self, state: Optional[State]):
         self._state = state
-        self._state.context = self
+        if isinstance(state, BaseState):
+            self._state.context = self
 
     def do_something(self, action):
-        state = self._state.do_something(context=self, inputs=action)
-        if state is not None:
-            del self._state  # call exit method...
+        state = self.state.do_something(inputs=action)
+        if state is None:
+            return
+        if type(state) != type(self.state):
+            self.state.exit()
             state.enter()
-            self._state = state
+            self.state = state
 
     def __repr__(self):
         return f"a : {self.cnt_a_state}\nb : {self.cnt_b_state}\nc : {self.cnt_c_state}"
